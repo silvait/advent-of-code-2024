@@ -1,13 +1,10 @@
 defmodule AdventOfCode.Day03 do
-  defp translate_operation([operation]) do
+  defp translate_operation(operation) do
     case operation do
-      "do()" -> :enable
-      "don't()" -> :disable
+      ["do()"] -> :enabled
+      ["don't()"] -> :disabled
+      [_, num1, num2] -> {String.to_integer(num1), String.to_integer(num2)}
     end
-  end
-
-  defp translate_operation([_, num1, num2]) do
-    {String.to_integer(num1), String.to_integer(num2)}
   end
 
   defp parse_operations(str) do
@@ -28,17 +25,18 @@ defmodule AdventOfCode.Day03 do
 
   defp perform_operations(operations) do
     Enum.map(operations, fn {x, y} -> x * y end)
+    |> Enum.sum()
   end
 
   defp perform_operations2(operations) do
-    {_, result} = Enum.reduce(operations, { true, 0 }, fn token, {status, result} ->
-      case [token, status] do
-        [:disable,_] -> {false, result}
-        [:enable,_] -> {true, result}
-        [_, false] -> {status, result}
-        [{x,y}, true] -> {status, (result + (x * y))}
-      end
-    end)
+    {_, result} =
+      Enum.reduce(operations, {:enabled, 0}, fn token, {status, result} ->
+        case [status, token] do
+          [:disabled, {_, _}] -> {status, result}
+          [:enabled, {x, y}] -> {status, result + x * y}
+          [_, new_status] -> {new_status, result}
+        end
+      end)
 
     result
   end
@@ -47,7 +45,6 @@ defmodule AdventOfCode.Day03 do
     input
     |> parse_operations()
     |> perform_operations()
-    |> Enum.sum()
   end
 
   def part2(input) do
