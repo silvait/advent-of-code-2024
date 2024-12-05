@@ -28,6 +28,6 @@ defmodule AdventOfCode.Day05Test do
     input = "#{__DIR__}/fixtures/day5_input.txt"
     result = part2(input)
 
-    assert result == 123
+    assert result == 6370
   end
 end

@@ -77,27 +77,17 @@ defmodule AdventOfCode.Day05 do
     |> Enum.sum()
   end
 
-  defp find_num_index([], _), do: -1
-  defp find_num_index(_, []), do: 0
-
   defp find_num_index(num_rule, update) do
-    Enum.map(num_rule, fn x ->
-      Enum.find_index(update, &(&1 == x))
-    end)
-    |> Enum.sort()
-    |> hd() || -1
+    Enum.find_index(update, &Enum.member?(num_rule, &1)) || -1
   end
 
   defp fix_bad_update(bad_update, rules) do
-    create_new_update(bad_update, rules, [])
-  end
+    Enum.reduce(bad_update, [], fn num, new_update ->
+      num_rules = Map.get(rules, num, [])
+      index = find_num_index(num_rules, new_update)
 
-  defp create_new_update([], _, new_update), do: new_update
-
-  defp create_new_update([num | rest], rules, new_update) do
-    num_rules = Map.get(rules, num, [])
-    index = find_num_index(num_rules, new_update)
-    create_new_update(rest, rules, List.insert_at(new_update, index, num))
+      List.insert_at(new_update, index, num)
+    end)
   end
 
   defp process_bad_updates({ rules, updates }) do
