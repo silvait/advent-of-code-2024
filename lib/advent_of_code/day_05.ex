@@ -9,44 +9,41 @@ defmodule AdventOfCode.Day05 do
   defp read_file(input_file) do
     input_file
     |> File.read!()
+  end
+
+  defp tuples_to_map_of_lists(tuples) do
+    Enum.reduce(tuples, %{}, fn {key, value}, acc ->
+      Map.update(acc, key, [value], fn existing_values -> [value | existing_values] end)
+    end)
+  end
+
+  defp parse_number_pair(line) do
+    line
+    |> String.split("|")
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
+  end
+
+  defp parse_rules(rules_section) do
+    rules_section
     |> String.split("\n")
+    |> Enum.map(&parse_number_pair/1)
+    |> tuples_to_map_of_lists()
+  end
+
+  defp parse_number_list(line) do
+    line |> String.split(",") |> Enum.map(&String.to_integer/1)
+  end
+
+  defp parse_updates(updates_section) do
+    updates_section
+    |> String.split("\n", trim: true)
+    |> Enum.map(&parse_number_list/1)
   end
 
   defp parse_input(lines) do
-    Enum.reduce(lines, {%{}, []}, fn l, {rules, updates} ->
-      cond do
-        String.contains?(l, "|") ->
-          new_rules = add_rule(l, rules)
-          {new_rules, updates}
-
-        String.contains?(l, ",") ->
-          new_updates = add_update(l, updates)
-          {rules, new_updates}
-
-        true ->
-          {rules, updates}
-      end
-    end)
-  end
-
-  defp add_rule(line, rules) do
-    [key, num] = String.split(line, "|") |> Enum.map(&String.to_integer/1)
-
-    {_, new_rules} = Map.get_and_update(rules, key, fn current_value ->
-      new_value = case current_value do
-        nil -> [num]
-        current_value -> [num | current_value]
-      end
-
-      {current_value, new_value}
-    end)
-
-    new_rules
-  end
-
-  defp add_update(line, updates) do
-    new_update = String.split(line, ",") |> Enum.map(&String.to_integer/1)
-    [new_update | updates]
+    [rules_section, updates_section] = String.split(lines, "\n\n")
+    {parse_rules(rules_section), parse_updates(updates_section)}
   end
 
   defp valid_update?(update, rules) do
@@ -70,7 +67,7 @@ defmodule AdventOfCode.Day05 do
     Enum.at(list, middle_index)
   end
 
-  defp process_updates({ rules, updates }) do
+  defp process_updates({rules, updates}) do
     updates
     |> Enum.filter(&valid_update?(&1, rules))
     |> Enum.map(&get_middle_element/1)
@@ -90,7 +87,7 @@ defmodule AdventOfCode.Day05 do
     end)
   end
 
-  defp process_bad_updates({ rules, updates }) do
+  defp process_bad_updates({rules, updates}) do
     updates
     |> Enum.reject(&valid_update?(&1, rules))
     |> Enum.map(&fix_bad_update(&1, rules))
