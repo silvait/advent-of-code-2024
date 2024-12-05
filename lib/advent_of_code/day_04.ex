@@ -7,6 +7,43 @@ defmodule AdventOfCode.Day04 do
     |> search_lines(@pattern)
   end
 
+  def part2(input_file) do
+    input_file
+    |> read_lines()
+    |> Enum.map(&String.graphemes/1)
+    |> count_xmas()
+  end
+
+  defp count_xmas(lines) do
+    total_rows = Enum.count(lines)
+    total_columns = Enum.count(Enum.at(lines, 0))
+
+    entries = for row <- 0..(total_rows - 1), col <- 0..(total_columns - 1), do: {row, col}
+
+    Enum.reduce(entries, 0, fn {row, col}, acc ->
+      acc + check_entry(lines, row, col)
+    end)
+  end
+
+  def get_entry(_, row, col) when row < 0 or col < 0, do: ""
+  def get_entry(lines, row, col), do: Enum.at(lines, row, []) |> Enum.at(col, "")
+
+  defp check_entry(lines, row, col) do
+    current = get_entry(lines, row, col)
+    top_left = get_entry(lines, row - 1, col - 1)
+    top_right = get_entry(lines, row - 1, col + 1)
+    bottom_left = get_entry(lines, row + 1, col - 1)
+    bottom_right = get_entry(lines, row + 1, col + 1)
+
+    case [current, top_left, top_right, bottom_left, bottom_right] do
+      ["A", "M", "M", "S", "S"] -> 1
+      ["A", "S", "S", "M", "M"] -> 1
+      ["A", "M", "S", "M", "S"] -> 1
+      ["A", "S", "M", "S", "M"] -> 1
+      _ -> 0
+    end
+  end
+
   defp read_lines(input_file) do
     input_file
     |> File.read!()
@@ -54,7 +91,4 @@ defmodule AdventOfCode.Day04 do
   end
 
   defp count_matches(line, pattern), do: Regex.scan(pattern, line) |> Enum.count()
-
-  def part2(_args) do
-  end
 end
