@@ -1,8 +1,5 @@
 defmodule AdventOfCode.Day06 do
   @north {0, -1}
-  @east {1, 0}
-  @south {0, 1}
-  @west {-1, 0}
 
   @obstacle_tile "#"
   @empty_tile "."
@@ -15,7 +12,7 @@ defmodule AdventOfCode.Day06 do
     |> calculate_route_length()
   end
 
-  defp read_lines(input_file), do: File.read!(input_file ) |> String.split("\n", trim: true)
+  defp read_lines(input_file), do: File.read!(input_file) |> String.split("\n", trim: true)
 
   defp build_grid(lines) do
     Enum.with_index(lines)
@@ -27,7 +24,7 @@ defmodule AdventOfCode.Day06 do
     line
     |> String.graphemes()
     |> Enum.with_index()
-    |> Enum.map(fn {char, x} -> {{x, y}, char} end)
+    |> Enum.map(fn {tile, x} -> {{x, y}, tile} end)
   end
 
   defp calculate_route_length(grid) do
@@ -55,20 +52,17 @@ defmodule AdventOfCode.Day06 do
     end
   end
 
-  defp find_start_position(grid), do: Enum.find(grid, fn {_k, v} -> v == @start_tile end) |> elem(0)
+  defp find_start_position(grid) do
+    grid
+    |> Enum.find(fn {_k, v} -> v == @start_tile end)
+    |> elem(0)
+  end
 
   defp step_forward({x, y}, {direction_x, direction_y}), do: {x + direction_x, y + direction_y}
 
   defp step_back({x, y}, {direction_x, direction_y}), do: {x - direction_x, y - direction_y}
 
-  defp turn_right(direction) do
-    case direction do
-      @north -> @east
-      @east -> @south
-      @south -> @west
-      @west -> @north
-    end
-  end
+  defp turn_right({x, y}), do: {-y, x}
 
   def part2(input_file) do
     input_file
