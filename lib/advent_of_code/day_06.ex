@@ -1,8 +1,8 @@
 defmodule AdventOfCode.Day06 do
-  @north {-1, 0}
-  @east {0, 1}
-  @south {1, 0}
-  @west {0, -1}
+  @north {0, -1}
+  @east {1, 0}
+  @south {0, 1}
+  @west {-1, 0}
 
   @obstacle "#"
   @space "."
@@ -29,11 +29,11 @@ defmodule AdventOfCode.Day06 do
     |> Map.new()
   end
 
-  defp parse_row({line, row}) do
+  defp parse_row({line, y}) do
     line
     |> String.graphemes()
     |> Enum.with_index()
-    |> Enum.map(fn {char, col} -> {{row, col}, char} end)
+    |> Enum.map(fn {char, x} -> {{x, y}, char} end)
   end
 
   defp turn_right(direction) do
@@ -45,12 +45,12 @@ defmodule AdventOfCode.Day06 do
     end
   end
 
-  defp step_forward({row, col}, {dir_row, dir_col}) do
-    {row + dir_row, col + dir_col}
+  defp step_forward({x, y}, {direction_x, direction_y}) do
+    {x + direction_x, y + direction_y}
   end
 
-  defp step_back({row, col}, {dir_row, dir_col}) do
-    {row - dir_row, col - dir_col}
+  defp step_back({x, y}, {direction_x, direction_y}) do
+    {x - direction_x, y - direction_y}
   end
 
   defp process_map(map) do
