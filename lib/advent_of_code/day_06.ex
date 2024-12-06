@@ -1,4 +1,9 @@
 defmodule AdventOfCode.Day06 do
+  @north {-1, 0}
+  @east {0, 1}
+  @south {1, 0}
+  @west {0, -1}
+
   def part1(input_file) do
     File.read!(input_file)
     |> String.split("\n", trim: true)
@@ -12,43 +17,52 @@ defmodule AdventOfCode.Day06 do
 
   defp build_map(lines) do
     Enum.with_index(lines)
-    |> Enum.flat_map(fn { l, row } ->
-      Enum.with_index(String.graphemes(l))
-      |> Enum.map(fn {c, col} ->
-        { {row,col}, c }
-      end)
-    end)
+    |> Enum.flat_map(&parse_row/1)
     |> Map.new()
+  end
+
+  defp parse_row({line, row}) do
+    line
+    |> String.graphemes()
+    |> Enum.with_index()
+    |> Enum.map(fn {char, col} -> {{row, col}, char} end)
   end
 
   defp turn_right(direction) do
     case direction do
-      {-1, 0} -> {0, 1}
-      {0, 1} -> {1, 0}
-      {1, 0} -> {0, -1}
-      {0, -1} -> {-1, 0}
+      @north -> @east
+      @east -> @south
+      @south -> @west
+      @west -> @north
     end
   end
 
   defp process_map(map) do
     start = find_start_position(map)
 
-    walk_map(map, start, {-1, 0}, MapSet.new())
+    walk_map(map, start, @north, MapSet.new())
     |> Enum.count()
   end
 
   defp walk_map(map, {row, col}, {dir_row, dir_col}, seen) do
-    current_tile = Map.get(map, {row, col})
+    case Map.get(map, {row, col}) do
+      nil ->
+        seen
 
-    case current_tile do
-      nil -> seen
       tile when tile in [".", "^"] ->
         new_seen = MapSet.put(seen, {row, col})
         walk_map(map, {row + dir_row, col + dir_col}, {dir_row, dir_col}, new_seen)
+
       "#" ->
         {last_row, last_col} = {row - dir_row, col - dir_col}
         {new_dir_row, new_dir_col} = turn_right({dir_row, dir_col})
-        walk_map(map, {last_row + new_dir_row, last_col + new_dir_col}, {new_dir_row, new_dir_col}, seen)
+
+        walk_map(
+          map,
+          {last_row + new_dir_row, last_col + new_dir_col},
+          {new_dir_row, new_dir_col},
+          seen
+        )
     end
   end
 
