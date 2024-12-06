@@ -3,12 +3,18 @@ defmodule AdventOfCode.Day06Test do
 
   import AdventOfCode.Day06
 
-  @tag :skip
-  test "part1" do
-    input = nil
+  test "part1 sample" do
+    input = "#{__DIR__}/fixtures/day6_sample.txt"
     result = part1(input)
 
-    assert result
+    assert result == 41
+  end
+
+  test "part1 input" do
+    input = "#{__DIR__}/fixtures/day6_input.txt"
+    result = part1(input)
+
+    assert result == 5564
   end
 
   @tag :skip
