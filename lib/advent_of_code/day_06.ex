@@ -4,6 +4,10 @@ defmodule AdventOfCode.Day06 do
   @south {1, 0}
   @west {0, -1}
 
+  @obstacle "#"
+  @space "."
+  @start "^"
+
   def part1(input_file) do
     File.read!(input_file)
     |> String.split("\n", trim: true)
@@ -12,7 +16,7 @@ defmodule AdventOfCode.Day06 do
   end
 
   defp find_start_position(map) do
-    Enum.find(map, fn {_, v} -> v == "^" end) |> elem(0)
+    Enum.find(map, fn {_, v} -> v == @start end) |> elem(0)
   end
 
   defp build_map(lines) do
@@ -37,32 +41,36 @@ defmodule AdventOfCode.Day06 do
     end
   end
 
+  defp step_forward({row, col}, {dir_row, dir_col}) do
+    {row + dir_row, col + dir_col}
+  end
+
+  defp step_back({row, col}, {dir_row, dir_col}) do
+    {row - dir_row, col - dir_col}
+  end
+
   defp process_map(map) do
     start = find_start_position(map)
 
-    walk_map(map, start, @north, MapSet.new())
+    map
+    |> walk_map(start, @north)
     |> Enum.count()
   end
 
-  defp walk_map(map, {row, col}, {dir_row, dir_col}, seen) do
-    case Map.get(map, {row, col}) do
+  defp walk_map(map, position, direction, visited \\ MapSet.new()) do
+    case Map.get(map, position) do
       nil ->
-        seen
+        visited
 
-      tile when tile in [".", "^"] ->
-        new_seen = MapSet.put(seen, {row, col})
-        walk_map(map, {row + dir_row, col + dir_col}, {dir_row, dir_col}, new_seen)
+      tile when tile in [@space, @start] ->
+        new_seen = MapSet.put(visited, position)
+        walk_map(map, step_forward(position, direction), direction, new_seen)
 
-      "#" ->
-        {last_row, last_col} = {row - dir_row, col - dir_col}
-        {new_dir_row, new_dir_col} = turn_right({dir_row, dir_col})
+      @obstacle ->
+        last_position = step_back(position, direction)
+        new_direction = turn_right(direction)
 
-        walk_map(
-          map,
-          {last_row + new_dir_row, last_col + new_dir_col},
-          {new_dir_row, new_dir_col},
-          seen
-        )
+        walk_map(map, step_forward(last_position, new_direction), new_direction, visited)
     end
   end
 
