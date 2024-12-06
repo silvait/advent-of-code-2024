@@ -17,11 +17,10 @@ defmodule AdventOfCode.Day06Test do
     assert result == 5564
   end
 
-  @tag :skip
-  test "part2" do
-    input = nil
+  test "part sample" do
+    input = "#{__DIR__}/fixtures/day6_sample.txt"
     result = part2(input)
 
-    assert result
+    assert result == 6
   end
 end

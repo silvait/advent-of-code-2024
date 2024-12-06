@@ -9,10 +9,14 @@ defmodule AdventOfCode.Day06 do
   @start "^"
 
   def part1(input_file) do
-    File.read!(input_file)
-    |> String.split("\n", trim: true)
+    input_file
+    |> read_lines()
     |> build_map()
     |> process_map()
+  end
+
+  defp read_lines(input_file) do
+    input_file |> File.read!() |> String.split("\n", trim: true)
   end
 
   defp find_start_position(map) do
@@ -63,8 +67,8 @@ defmodule AdventOfCode.Day06 do
         visited
 
       tile when tile in [@space, @start] ->
-        new_seen = MapSet.put(visited, position)
-        walk_map(map, step_forward(position, direction), direction, new_seen)
+        new_visited = MapSet.put(visited, position)
+        walk_map(map, step_forward(position, direction), direction, new_visited)
 
       @obstacle ->
         last_position = step_back(position, direction)
@@ -74,6 +78,11 @@ defmodule AdventOfCode.Day06 do
     end
   end
 
-  def part2(_args) do
+  def part2(input_file) do
+    input_file
+    |> read_lines()
+    |> build_map()
+
+    0
   end
 end
