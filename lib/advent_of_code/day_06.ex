@@ -48,23 +48,24 @@ defmodule AdventOfCode.Day06 do
   end
 
   defp walk_grid(grid, position, direction \\ @north, visited \\ MapSet.new()) do
-    if MapSet.member?(visited, {position, direction}) do
-      nil
-    else
-      case Map.get(grid, position) do
-        nil ->
-          visited
+    tile = Map.get(grid, position)
 
-        tile when tile in [@empty_tile, @start_tile] ->
-          new_visited = MapSet.put(visited, {position, direction})
-          walk_grid(grid, step_forward(position, direction), direction, new_visited)
+    cond do
+      MapSet.member?(visited, {position, direction}) ->
+        nil
 
-        @obstacle_tile ->
-          last_position = step_back(position, direction)
-          new_direction = turn_right(direction)
+      tile == nil ->
+        visited
 
-          walk_grid(grid, step_forward(last_position, new_direction), new_direction, visited)
-      end
+      tile in [@empty_tile, @start_tile] ->
+        new_visited = MapSet.put(visited, {position, direction})
+        walk_grid(grid, step_forward(position, direction), direction, new_visited)
+
+      tile == @obstacle_tile ->
+        last_position = step_back(position, direction)
+        new_direction = turn_right(direction)
+
+        walk_grid(grid, step_forward(last_position, new_direction), new_direction, visited)
     end
   end
 
@@ -87,13 +88,13 @@ defmodule AdventOfCode.Day06 do
     |> count_loops()
   end
 
-
   defp count_loops(grid) do
     start_position = find_start_position(grid)
 
-    route = walk_grid(grid, start_position)
-    |> get_unique_tiles()
-    |> List.delete(start_position)
+    route =
+      walk_grid(grid, start_position)
+      |> get_unique_tiles()
+      |> List.delete(start_position)
 
     Enum.count(route, fn position ->
       Map.put(grid, position, @obstacle_tile)
