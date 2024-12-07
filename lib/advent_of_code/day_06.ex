@@ -31,7 +31,7 @@ defmodule AdventOfCode.Day06 do
     start_position = find_start_position(grid)
 
     grid
-    |> walk_grid(start_position)
+    |> travel_grid(start_position)
     |> count_unique_tiles()
   end
 
@@ -47,25 +47,25 @@ defmodule AdventOfCode.Day06 do
     |> Enum.uniq()
   end
 
-  defp walk_grid(grid, position, direction \\ @north, visited \\ MapSet.new()) do
+  defp travel_grid(grid, position, direction \\ @north, route \\ MapSet.new()) do
     tile = Map.get(grid, position)
 
     cond do
-      MapSet.member?(visited, {position, direction}) ->
+      MapSet.member?(route, {position, direction}) ->
         nil
 
       tile == nil ->
-        visited
+        route
 
       tile in [@empty_tile, @start_tile] ->
-        new_visited = MapSet.put(visited, {position, direction})
-        walk_grid(grid, step_forward(position, direction), direction, new_visited)
+        new_visited = MapSet.put(route, {position, direction})
+        travel_grid(grid, move_forward(position, direction), direction, new_visited)
 
       tile == @obstacle_tile ->
-        last_position = step_back(position, direction)
+        last_position = move_back(position, direction)
         new_direction = turn_right(direction)
 
-        walk_grid(grid, step_forward(last_position, new_direction), new_direction, visited)
+        travel_grid(grid, move_forward(last_position, new_direction), new_direction, route)
     end
   end
 
@@ -75,9 +75,9 @@ defmodule AdventOfCode.Day06 do
     |> elem(0)
   end
 
-  defp step_forward({x, y}, {direction_x, direction_y}), do: {x + direction_x, y + direction_y}
+  defp move_forward({x, y}, {direction_x, direction_y}), do: {x + direction_x, y + direction_y}
 
-  defp step_back({x, y}, {direction_x, direction_y}), do: {x - direction_x, y - direction_y}
+  defp move_back({x, y}, {direction_x, direction_y}), do: {x - direction_x, y - direction_y}
 
   defp turn_right({x, y}), do: {-y, x}
 
@@ -92,13 +92,13 @@ defmodule AdventOfCode.Day06 do
     start_position = find_start_position(grid)
 
     route =
-      walk_grid(grid, start_position)
+      travel_grid(grid, start_position)
       |> get_unique_tiles()
       |> List.delete(start_position)
 
     Enum.count(route, fn position ->
       Map.put(grid, position, @obstacle_tile)
-      |> walk_grid(start_position)
+      |> travel_grid(start_position)
       |> is_nil()
     end)
   end
