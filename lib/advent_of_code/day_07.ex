@@ -34,9 +34,12 @@ defmodule AdventOfCode.Day07 do
   end
 
   defp do_math(result, [], acc, _), do: result == acc
+  defp do_math(result, _, acc, _) when acc > result, do: false
 
   defp do_math(result, [num | rest], acc, operators) do
-    Enum.any?(operators, fn op -> do_math(result, rest, op.(acc, num), operators) end)
+    Enum.any?(operators, fn op ->
+      do_math(result, rest, op.(acc, num), operators)
+    end)
   end
 
   defp concat_numbers(num1, num2) do
