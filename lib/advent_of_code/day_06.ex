@@ -35,17 +35,9 @@ defmodule AdventOfCode.Day06 do
     |> count_unique_tiles()
   end
 
-  defp count_unique_tiles(route) do
-    route
-    |> get_unique_tiles()
-    |> Enum.count()
-  end
+  defp count_unique_tiles(route), do: get_unique_tiles(route) |> MapSet.size()
 
-  defp get_unique_tiles(route) do
-    route
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.uniq()
-  end
+  defp get_unique_tiles(route), do: Enum.map(route, &elem(&1, 0)) |> MapSet.new()
 
   defp travel_grid(grid, position, direction \\ @north, route \\ MapSet.new()) do
     tile = Map.get(grid, position)
@@ -94,7 +86,7 @@ defmodule AdventOfCode.Day06 do
     route =
       travel_grid(grid, start_position)
       |> get_unique_tiles()
-      |> List.delete(start_position)
+      |> MapSet.delete(start_position)
 
     Enum.count(route, fn position ->
       Map.put(grid, position, @obstacle_tile)
