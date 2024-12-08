@@ -21,41 +21,33 @@ defmodule AdventOfCode.Day08 do
   end
 
   defp find_antennas(grid) do
-    Enum.reject(grid, fn ({_, tile}) -> tile == "." end)
+    Enum.reject(grid, fn {_, tile} -> tile == "." end)
+  end
+
+  defp invalid_location?(grid, location) do
+    Map.get(grid, location) == nil
   end
 
   defp count_anti_nodes(grid) do
     grid
     |> find_antennas()
-    |> then(fn a -> find_anti_nodes(grid, a, []) end)
-    |> Enum.reject(fn location -> Map.get(grid, location) == nil end)
+    |> find_anti_nodes([])
+    |> Enum.reject(&invalid_location?(grid, &1))
     |> Enum.uniq()
     |> Enum.count()
   end
 
-  defp find_anti_nodes(_grid, [], anti_nodes), do: anti_nodes
+  defp find_anti_nodes([], anti_nodes), do: anti_nodes
 
-  defp find_anti_nodes(grid, [{ location, antenna } | rest], anti_nodes) do
-    new_nodes = Enum.filter(rest, fn {_, tile} -> tile == antenna end)
-    |> Enum.flat_map(fn { other_location, _ } -> calculate_anti_node_locations(location, other_location) end)
+  defp find_anti_nodes([{{x1, y1}, antenna} | rest], anti_nodes) do
+    new_nodes =
+      Enum.filter(rest, fn {_, tile} -> tile == antenna end)
+      |> Enum.flat_map(fn {{x2, y2}, _} ->
+        {rise, run} = {y2 - y1, x2 - x1}
+        [{x1 - run, y1 - rise}, {x2 + run, y2 + rise}]
+      end)
 
-    find_anti_nodes(grid, rest, new_nodes ++ anti_nodes)
-  end
-
-  def calculate_anti_node_locations({x1,y1} , {x2, y2} ) do
-    [{x1, y1}, {x2, y2}] = if x2 < x1 do
-      [{x2, y2}, {x1, y1}]
-    else
-      [{x1, y1}, {x2, y2}]
-    end
-
-    rise = y2 - y1
-    run = x2 - x1
-
-    location1 = {(x1 - run), (y1 - rise)}
-    location2 = {(x2 + run), (y2 + rise)}
-
-    [location1, location2]
+    find_anti_nodes(rest, new_nodes ++ anti_nodes)
   end
 
   def part2(_args) do
