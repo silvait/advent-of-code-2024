@@ -41,9 +41,7 @@ defmodule AdventOfCode.Day10 do
 
   defp move({x, y}, {delta_x, delta_y}), do: {x + delta_x, y + delta_y}
 
-  defp find_trailheads(grid) do
-    for {k, v} <- grid, v == 0, do: k
-  end
+  defp find_trailheads(grid), do: for({k, v} <- grid, v == 0, do: k)
 
   defp walk_grid(grid, location, step \\ 0) do
     case {Map.get(grid, location), step} do
