@@ -3,19 +3,24 @@ defmodule AdventOfCode.Day09Test do
 
   import AdventOfCode.Day09
 
-  @tag :skip
-  test "part1" do
-    input = nil
+  test "part1 sample" do
+    input = "2333133121414131402"
     result = part1(input)
 
-    assert result
+    assert result == 1928
   end
 
-  @tag :skip
+  test "part1 input" do
+    input = File.read!("#{__DIR__}/fixtures/day9_input.txt")
+    result = part1(input)
+
+    assert result == 6283170117911
+  end
+
   test "part2" do
-    input = nil
+    input = "2333133121414131402"
     result = part2(input)
 
-    assert result
+    assert result == 2858
   end
 end
