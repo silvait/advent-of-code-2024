@@ -65,12 +65,15 @@ defmodule AdventOfCode.Day09 do
     end
   end
 
-  def calculate_checksum(compressed_disk_map) do
-    compressed_disk_map
+  def calculate_checksum(disk) do
+    disk
     |> Enum.with_index()
-    |> Enum.reject(fn {x, _} -> x == @free_space end)
-    |> Enum.map(&Tuple.product/1)
-    |> Enum.sum()
+    |> Enum.reduce(0, fn {x, index}, sum ->
+      case x do
+        @free_space -> sum
+        _ -> sum + (x * index)
+      end
+    end)
   end
 
   def expand_files_to_bytes(compressed_files) do
@@ -91,10 +94,9 @@ defmodule AdventOfCode.Day09 do
     |> calculate_checksum()
   end
 
-  def parse_disk_files(numbers) do
-    numbers
-    |> String.graphemes()
-    |> Enum.map(&String.to_integer/1)
+  def parse_disk_files(line) do
+    line
+    |> parse_numbers()
     |> Enum.with_index()
     |> Enum.reduce([], &parse_map_files/2)
     |> Enum.reverse()
