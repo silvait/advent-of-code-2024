@@ -51,7 +51,7 @@ defmodule AdventOfCode.Day10 do
       {nil, _} -> []
       # end of trail
       {9, 9} -> [location]
-      # next step
+      # location is the next step
       {a, a} -> Enum.flat_map(@directions, &walk_grid(grid, move(location, &1), step + 1))
       # wrong way
       {_, _} -> []
