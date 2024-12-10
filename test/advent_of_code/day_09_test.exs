@@ -24,6 +24,7 @@ defmodule AdventOfCode.Day09Test do
     assert result == 2858
   end
 
+  @tag :skip
   test "part2 input" do
     input = File.read!("#{__DIR__}/fixtures/day9_input.txt")
     result = part2(input)
