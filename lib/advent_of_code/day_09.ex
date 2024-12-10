@@ -1,34 +1,47 @@
 defmodule AdventOfCode.Day09 do
+  @free_space -1
+
+  require Integer
+
   def part1(input) do
     input
-    |> parse_disk_bytes()
-    |> compress_disk_bytes()
-    |> Enum.reverse()
+    |> parse_disk_blocks()
+    |> compress_disk_blocks()
     |> calculate_checksum()
   end
 
-  def parse_disk_bytes(numbers) do
+  def parse_disk_blocks(line) do
+    line
+    |> parse_numbers()
+    |> process_disk_blocks()
+  end
+
+  defp parse_numbers(line) do
+    line |> String.graphemes() |> Enum.map(&String.to_integer/1)
+  end
+
+  defp process_disk_blocks(numbers) do
     numbers
-    |> String.graphemes()
-    |> Enum.map(&String.to_integer/1)
-    |> Enum.with_index()
-    |> Enum.reduce({0, []}, &parse_map_bytes/2)
-    |> elem(1)
+    |> parse_map_bytes(0, [])
     |> Enum.reverse()
   end
 
-  defp parse_map_bytes({count, index}, {id, list}) do
-    require Integer
+  defp parse_map_bytes([], _, list), do: list
 
-    if Integer.is_even(index) do
-      {id + 1, List.duplicate(Integer.to_string(id), count) ++ list}
-    else
-      {id, List.duplicate(nil, count) ++ list}
-    end
+  defp parse_map_bytes([count | rest], index, list) when Integer.is_even(index) do
+    file_id = div(index, 2)
+    block = List.duplicate(file_id, count)
+    parse_map_bytes(rest, index + 1, block ++ list)
   end
 
-  def compress_disk_bytes(disk) do
+  defp parse_map_bytes([count | rest], index, list) do
+    block = List.duplicate(@free_space, count)
+    parse_map_bytes(rest, index + 1, block ++ list)
+  end
+
+  def compress_disk_blocks(disk) do
     do_compress_bytes(disk, 0, Enum.reverse(disk), Enum.count(disk) - 1, [])
+    |> Enum.reverse()
   end
 
   defp do_compress_bytes([], _, _, _, compressed), do: compressed
@@ -41,10 +54,10 @@ defmodule AdventOfCode.Day09 do
     [next | replacement_rest] = replacements
 
     case [current, next] do
-      [nil, nil] ->
+      [@free_space, @free_space] ->
         do_compress_bytes(disk, start_i, replacement_rest, end_i - 1, compressed)
 
-      [nil, id] ->
+      [@free_space, id] ->
         do_compress_bytes(disk_rest, start_i + 1, replacement_rest, end_i - 1, [id | compressed])
 
       [id, _] ->
@@ -54,8 +67,8 @@ defmodule AdventOfCode.Day09 do
 
   def calculate_checksum(compressed_disk_map) do
     compressed_disk_map
-    |> Enum.map(&if is_nil(&1), do: 0, else: String.to_integer(&1))
     |> Enum.with_index()
+    |> Enum.reject(fn {x, _} -> x == @free_space end)
     |> Enum.map(&Tuple.product/1)
     |> Enum.sum()
   end
@@ -74,7 +87,6 @@ defmodule AdventOfCode.Day09 do
     input
     |> parse_disk_files()
     |> compress_disk_files()
-    |> Enum.reverse()
     |> expand_files_to_bytes()
     |> calculate_checksum()
   end
@@ -84,23 +96,21 @@ defmodule AdventOfCode.Day09 do
     |> String.graphemes()
     |> Enum.map(&String.to_integer/1)
     |> Enum.with_index()
-    |> Enum.reduce({0, []}, &parse_map_files/2)
-    |> elem(1)
+    |> Enum.reduce([], &parse_map_files/2)
     |> Enum.reverse()
   end
 
-  def parse_map_files({count, index}, {id, list}) do
-    require Integer
-
+  def parse_map_files({count, index}, list) do
     if Integer.is_even(index) do
-      {id + 1, [{Integer.to_string(id), count} | list]}
+      id = div(index, 2)
+      [{id, count} | list]
     else
-      {id, [{nil, count} | list]}
+      [{@free_space, count} | list]
     end
   end
 
   def compress_disk_files(disk) do
-    do_compress_files(disk, Enum.count(disk) - 1)
+    do_compress_files(disk, Enum.count(disk) - 1) |> Enum.reverse()
   end
 
   def do_compress_files(disk, end_i) when end_i < 1, do: disk
@@ -108,7 +118,7 @@ defmodule AdventOfCode.Day09 do
   def do_compress_files(disk, end_i) do
     {highest_id, count} = Enum.at(disk, end_i)
 
-    if is_nil(highest_id) do
+    if highest_id == @free_space do
       do_compress_files(disk, end_i - 1)
     else
       case find_free_spot(disk, count, end_i) do
@@ -122,14 +132,14 @@ defmodule AdventOfCode.Day09 do
 
           if new_free_count > 0 do
             new_disk =
-              List.replace_at(disk, end_i, {nil, count})
+              List.replace_at(disk, end_i, {@free_space, count})
               |> List.replace_at(index, {highest_id, count})
-              |> List.insert_at(index + 1, {nil, new_free_count})
+              |> List.insert_at(index + 1, {@free_space, new_free_count})
 
             do_compress_files(new_disk, end_i - 1)
           else
             new_disk =
-              List.replace_at(disk, end_i, {nil, count})
+              List.replace_at(disk, end_i, {@free_space, count})
               |> List.replace_at(index, {highest_id, count})
 
             do_compress_files(new_disk, end_i - 1)
@@ -142,7 +152,7 @@ defmodule AdventOfCode.Day09 do
     Enum.slice(disk, 0..(before_index - 1))
     |> Enum.find_index(fn cell ->
       case cell do
-        {nil, free_count} -> free_count >= count
+        {@free_space, free_count} -> free_count >= count
         {_, _} -> false
       end
     end)
