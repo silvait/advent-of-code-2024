@@ -35,7 +35,7 @@ defmodule AdventOfCode.Day10 do
     |> Enum.map(fn {height, x} -> {{x, y}, String.to_integer(height)} end)
   end
 
-  defp find_trails(grid), do: find_trailheads(grid) |> Enum.map(&walk_grid(grid, &1, 0))
+  defp find_trails(grid), do: find_trailheads(grid) |> Enum.map(&walk_grid(grid, &1))
 
   defp score_trailheads(grid), do: find_trails(grid) |> Enum.map(&Enum.uniq/1)
 
@@ -45,7 +45,7 @@ defmodule AdventOfCode.Day10 do
     for {k, v} <- grid, v == 0, do: k
   end
 
-  defp walk_grid(grid, location, step) do
+  defp walk_grid(grid, location, step \\ 0) do
     case {Map.get(grid, location), step} do
       # outside grid
       {nil, _} -> []
