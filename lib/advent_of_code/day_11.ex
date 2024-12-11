@@ -55,7 +55,7 @@ defmodule AdventOfCode.Day11 do
 
   defp bisect_number(num) do
     middle_index = number_of_digits(num) |> div(2)
-    divisor = :math.pow(10, middle_index) |> round
+    divisor = :math.pow(10, middle_index) |> trunc
 
     [div(num, divisor), rem(num, divisor)]
   end
