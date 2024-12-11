@@ -10,7 +10,6 @@ defmodule AdventOfCode.Day11Test do
     assert result == 55312
   end
 
-  @tag timeout: :infinity
   test "part1 input" do
     input = "773 79858 0 71 213357 2937 1 3998391"
     result = part1(input)
@@ -18,11 +17,10 @@ defmodule AdventOfCode.Day11Test do
     assert result == 199982
   end
 
-  @tag :skip
-  test "part2" do
-    input = nil
+  test "part2 input" do
+    input = "773 79858 0 71 213357 2937 1 3998391"
     result = part2(input)
 
-    assert result
+    assert result == 199982
   end
 end

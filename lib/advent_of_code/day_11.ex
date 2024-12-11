@@ -2,15 +2,25 @@ defmodule AdventOfCode.Day11 do
   require Integer
 
   def part1(input) do
+    solve(input, 25)
+  end
+
+  def part2(input) do
+    solve(input, 38)
+  end
+
+  defp solve(input, times) do
     input
     |> String.split()
     |> Enum.map(&String.to_integer/1)
-    |> blink(25)
+    |> blink(times)
     |> Enum.count()
   end
 
-  defp blink(numbers, times, cache \\ %{}) do
-    Enum.reduce(1..times, {numbers, cache}, fn _, {result, cache} ->
+  defp blink(numbers, times) do
+    rule_cache = %{}
+
+    Enum.reduce(1..times, {numbers, rule_cache}, fn _, {result, cache} ->
       do_blink(result, cache, [])
     end)
     |> elem(0)
@@ -48,8 +58,5 @@ defmodule AdventOfCode.Day11 do
 
     [String.slice(num_str, 0, middle), String.slice(num_str, middle, count)]
     |> Enum.map(&String.to_integer/1)
-  end
-
-  def part2(_input) do
   end
 end
