@@ -12,41 +12,48 @@ defmodule AdventOfCode.Day11 do
     |> Enum.sum()
   end
 
-  defp parse_line_numbers(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
-
-  def blink(stones, max_blinks) do
-    Enum.map(stones, &(do_blink(&1, max_blinks, 1, %{}) |> elem(0)))
+  defp parse_line_numbers(line) do
+    line
+    |> String.split()
+    |> Enum.map(&String.to_integer/1)
   end
 
-  def do_blink(_, max_blinks, blinks, cache) when blinks > max_blinks, do: {1, cache}
+  def blink(stones, n) do
+    Enum.map(stones, &(do_blink(&1, n, %{}) |> elem(0)))
+  end
 
-  def do_blink(num, max_blinks, blinks, cache) do
-    cache_key = {num, blinks}
+  def do_blink(_, 0, cache), do: {1, cache}
 
-    {result, new_cache} =
-      case Map.get(cache, cache_key) do
-        nil ->
-          cond do
-            num == 0 ->
-              do_blink(1, max_blinks, blinks + 1, cache)
+  def do_blink(num, n, cache) do
+    cache_key = {num, n}
+    cached_result = Map.get(cache, cache_key)
 
-            even_number_of_digits?(num) ->
-              [left, right] = bisect_number(num)
+    if cached_result == nil do
+      {result, new_cache} =
+        case apply_rule(num) do
+          [a, b] ->
+            {result_a, cache_a} = do_blink(a, n - 1, cache)
+            {result_b, cache_b} = do_blink(b, n - 1, cache_a)
+            {result_a + result_b, cache_b}
 
-              {result_a, new_cache_a} = do_blink(left, max_blinks, blinks + 1, cache)
-              {result_b, new_cache_b} = do_blink(right, max_blinks, blinks + 1, new_cache_a)
+          a ->
+            do_blink(a, n - 1, cache)
+        end
 
-              {result_a + result_b, new_cache_b}
+      {result, Map.put(new_cache, cache_key, result)}
+    else
+      {cached_result, cache}
+    end
+  end
 
-            true ->
-              do_blink(num * 2024, max_blinks, blinks + 1, cache)
-          end
+  defp apply_rule(0), do: 1
 
-        value ->
-          {value, cache}
-      end
-
-    {result, Map.put(new_cache, cache_key, result)}
+  defp apply_rule(num) do
+    if even_number_of_digits?(num) do
+      bisect_number(num)
+    else
+      num * 2024
+    end
   end
 
   defp even_number_of_digits?(num), do: number_of_digits(num) |> Integer.is_even()
