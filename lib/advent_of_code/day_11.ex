@@ -1,67 +1,62 @@
 defmodule AdventOfCode.Day11 do
   require Integer
 
-  def part1(input) do
-    solve(input, 25)
-  end
+  def part1(input), do: solve(input, 25)
 
-  def part2(input) do
-    solve(input, 40)
-  end
+  def part2(input), do: solve(input, 75)
 
   defp solve(input, times) do
     input
-    |> String.split()
-    |> Enum.map(&String.to_integer/1)
+    |> parse_line_numbers()
     |> blink(times)
-    |> Enum.count()
+    |> Enum.sum()
   end
 
-  defp blink(numbers, times) do
-    rule_cache = %{}
+  defp parse_line_numbers(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
 
-    Enum.reduce(1..times, {numbers, rule_cache}, fn _, {result, cache} ->
-      do_blink(result, cache, [])
-    end)
-    |> elem(0)
+  def blink(stones, max_blinks) do
+    Enum.map(stones, &(do_blink(&1, max_blinks, 1, %{}) |> elem(0)))
   end
 
-  defp do_blink([], cache, result), do: {result, cache}
+  def do_blink(_, max_blinks, blinks, cache) when blinks > max_blinks, do: {1, cache}
 
-  defp do_blink([n | rest], cache, result) do
-    {current_result, new_cache} = apply_rule(n, cache)
-    do_blink(rest, new_cache, current_result ++ result)
-  end
+  def do_blink(num, max_blinks, blinks, cache) do
+    cache_key = {num, blinks}
 
-  defp apply_rule(num, cache) do
-    case Map.get(cache, num) do
-      nil ->
-        result =
+    {result, new_cache} =
+      case Map.get(cache, cache_key) do
+        nil ->
           cond do
-            num == 0 -> [1]
-            number_of_digits(num) |>  Integer.is_even() -> split_number(num)
-            true -> [num * 2024]
+            num == 0 ->
+              do_blink(1, max_blinks, blinks + 1, cache)
+
+            even_number_of_digits?(num) ->
+              [left, right] = bisect_number(num)
+
+              {result_a, new_cache_a} = do_blink(left, max_blinks, blinks + 1, cache)
+              {result_b, new_cache_b} = do_blink(right, max_blinks, blinks + 1, new_cache_a)
+
+              {result_a + result_b, new_cache_b}
+
+            true ->
+              do_blink(num * 2024, max_blinks, blinks + 1, cache)
           end
 
-        new_cache = Map.put(cache, num, result)
-        {result, new_cache}
+        value ->
+          {value, cache}
+      end
 
-      cached_result ->
-        {cached_result, cache}
-    end
+    {result, Map.put(new_cache, cache_key, result)}
   end
 
-  defp number_of_digits(num) do
-    Integer.digits(num) |> Enum.count()
-  end
+  defp even_number_of_digits?(num), do: number_of_digits(num) |> Integer.is_even()
 
-  defp split_number(num) do
-    num_digits = number_of_digits(num)
-    half_digits = div(num_digits, 2)
+  defp number_of_digits(num), do: Integer.digits(num) |> Enum.count()
 
-    left = div(num, :math.pow(10, num_digits - half_digits) |> round)
-    right = rem(num, :math.pow(10, num_digits - half_digits) |> round)
+  defp bisect_number(num) do
+    middle_index = number_of_digits(num) |> div(2)
+    divisor = :math.pow(10, middle_index) |> round
 
-    [left, right]
+    [div(num, divisor), rem(num, divisor)]
   end
 end

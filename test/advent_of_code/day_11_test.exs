@@ -21,6 +21,6 @@ defmodule AdventOfCode.Day11Test do
     input = "773 79858 0 71 213357 2937 1 3998391"
     result = part2(input)
 
-    assert result == 199982
+    assert result == 237149922829154
   end
 end
