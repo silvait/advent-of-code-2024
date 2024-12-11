@@ -6,7 +6,7 @@ defmodule AdventOfCode.Day11 do
   end
 
   def part2(input) do
-    solve(input, 38)
+    solve(input, 40)
   end
 
   defp solve(input, times) do
@@ -39,7 +39,7 @@ defmodule AdventOfCode.Day11 do
         result =
           cond do
             num == 0 -> [1]
-            Integer.digits(num) |> Enum.count() |> Integer.is_even() -> split_number(num)
+            number_of_digits(num) |>  Integer.is_even() -> split_number(num)
             true -> [num * 2024]
           end
 
@@ -51,12 +51,17 @@ defmodule AdventOfCode.Day11 do
     end
   end
 
-  defp split_number(num) do
-    num_str = Integer.to_string(num)
-    count = String.length(num_str)
-    middle = div(count, 2)
+  defp number_of_digits(num) do
+    Integer.digits(num) |> Enum.count()
+  end
 
-    [String.slice(num_str, 0, middle), String.slice(num_str, middle, count)]
-    |> Enum.map(&String.to_integer/1)
+  defp split_number(num) do
+    num_digits = number_of_digits(num)
+    half_digits = div(num_digits, 2)
+
+    left = div(num, :math.pow(10, num_digits - half_digits) |> round)
+    right = rem(num, :math.pow(10, num_digits - half_digits) |> round)
+
+    [left, right]
   end
 end
