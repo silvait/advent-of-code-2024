@@ -3,12 +3,32 @@ defmodule AdventOfCode.Day12Test do
 
   import AdventOfCode.Day12
 
-  @tag :skip
-  test "part1" do
-    input = nil
+  test "part1 sample A" do
+    input = "#{__DIR__}/fixtures/day12_sample_a.txt"
     result = part1(input)
 
-    assert result
+    assert result == 140
+  end
+
+  test "part1 sample B" do
+    input = "#{__DIR__}/fixtures/day12_sample_b.txt"
+    result = part1(input)
+
+    assert result == 772
+  end
+
+  test "part1 sample C" do
+    input = "#{__DIR__}/fixtures/day12_sample_c.txt"
+    result = part1(input)
+
+    assert result == 1930
+  end
+
+  test "part1 input" do
+    input = "#{__DIR__}/fixtures/day12_input.txt"
+    result = part1(input)
+
+    assert result == 1304764
   end
 
   @tag :skip
