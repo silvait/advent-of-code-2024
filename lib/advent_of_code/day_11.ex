@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day11 do
+  @moduledoc false
+
   require Integer
 
   def part1(input), do: solve(input, 25)

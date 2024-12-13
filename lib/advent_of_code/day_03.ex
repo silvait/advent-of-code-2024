@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day03 do
+  @moduledoc false
+
   defp translate_operation(operation) do
     case operation do
       ["do()"] -> :enabled

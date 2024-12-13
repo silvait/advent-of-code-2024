@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day05 do
+  @moduledoc false
+
   def part1(input_file) do
     input_file
     |> read_file()

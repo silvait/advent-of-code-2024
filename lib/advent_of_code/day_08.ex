@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day08 do
+  @moduledoc false
+
   def part1(input_file), do: solve(input_file, 1)
 
   def part2(input_file), do: solve(input_file, nil)

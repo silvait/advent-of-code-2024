@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day01 do
+  @moduledoc false
+
   defp parse_number_pair(line) do
     line
     |> String.split()
@@ -20,11 +22,11 @@ defmodule AdventOfCode.Day01 do
     |> Enum.unzip()
   end
 
-  defp calculate_list_distance({ col1, col2 }) do
+  defp calculate_list_distance({col1, col2}) do
     col1 = Enum.sort(col1)
     col2 = Enum.sort(col2)
 
-    calculate_distance = &(abs(&1 - &2))
+    calculate_distance = &abs(&1 - &2)
 
     Enum.zip_with(col1, col2, calculate_distance)
     |> Enum.sum()

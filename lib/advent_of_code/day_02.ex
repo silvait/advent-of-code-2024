@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day02 do
+  @moduledoc false
+
   defp read_file(file) do
     case File.read(file) do
       {:ok, contents} -> contents
@@ -10,7 +12,7 @@ defmodule AdventOfCode.Day02 do
     String.split(str) |> Enum.map(&String.to_integer/1)
   end
 
-  defp is_safe_level(levels) do
+  defp safe_level?(levels) do
     deltas = calculate_deltas(levels)
 
     (Enum.all?(deltas, fn x -> x > 0 end) || Enum.all?(deltas, fn x -> x < 0 end)) &&
@@ -23,8 +25,8 @@ defmodule AdventOfCode.Day02 do
     end)
   end
 
-  defp is_tolerable_safe_level(levels) do
-    is_safe_level(levels) || generate_sublists(levels) |> Enum.any?(&is_safe_level/1)
+  defp tolerable_safe_level?(levels) do
+    safe_level?(levels) || generate_sublists(levels) |> Enum.any?(&safe_level?/1)
   end
 
   def calculate_deltas(levels) do
@@ -34,13 +36,13 @@ defmodule AdventOfCode.Day02 do
 
   defp count_safe_levels(levels) do
     levels
-    |> Enum.filter(&is_safe_level/1)
+    |> Enum.filter(&safe_level?/1)
     |> length()
   end
 
   defp count_tolerable_safe_levels(levels) do
     levels
-    |> Enum.filter(&is_tolerable_safe_level/1)
+    |> Enum.filter(&tolerable_safe_level?/1)
     |> length()
   end
 

@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day06 do
+  @moduledoc false
+
   @north {0, -1}
 
   @obstacle_tile "#"

@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day07 do
+  @moduledoc false
+
   def part1(input_file) do
     solve(input_file, [&Kernel.+/2, &Kernel.*/2])
   end

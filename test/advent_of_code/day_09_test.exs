@@ -14,7 +14,7 @@ defmodule AdventOfCode.Day09Test do
     input = File.read!("#{__DIR__}/fixtures/day9_input.txt")
     result = part1(input)
 
-    assert result == 6283170117911
+    assert result == 6_283_170_117_911
   end
 
   test "part2 sample" do
@@ -29,6 +29,6 @@ defmodule AdventOfCode.Day09Test do
     input = File.read!("#{__DIR__}/fixtures/day9_input.txt")
     result = part2(input)
 
-    assert result == 6307653242596
+    assert result == 6_307_653_242_596
   end
 end

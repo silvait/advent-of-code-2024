@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day04 do
+  @moduledoc false
+
   @pattern ~r/(?=(XMAS|SAMX))/
 
   def part1(input_file) do

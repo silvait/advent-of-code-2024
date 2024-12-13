@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day17 do
+  @moduledoc false
+
   def part1(_args) do
   end
 

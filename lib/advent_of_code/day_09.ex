@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day09 do
+  @moduledoc false
+
   @free_space -1
 
   require Integer

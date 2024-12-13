@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day12 do
+  @moduledoc false
+
   @north {0, -1}
   @northeast {1, -1}
   @east {1, 0}
