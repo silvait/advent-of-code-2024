@@ -17,20 +17,16 @@ defmodule AdventOfCode.Day12 do
     [@west, @northwest, @north]
   ]
 
-  def part1(input_file) do
-    input_file
-    |> read_lines()
-    |> parse_grid()
-    |> find_regions()
-    |> calculate_fence_cost()
-  end
+  def part1(input_file), do: solve(input_file, &calculate_fence_cost/1)
 
-  def part2(input_file) do
+  def part2(input_file), do: solve(input_file, &calculate_bulk_fence_cost/1)
+
+  defp solve(input_file, calculate_fence_cost_fn) do
     input_file
     |> read_lines()
     |> parse_grid()
-    |> find_regions()
-    |> calculate_fence_bulk_cost()
+    |> parse_regions()
+    |> calculate_fence_cost_fn.()
   end
 
   defp read_lines(input_file) do
@@ -51,71 +47,47 @@ defmodule AdventOfCode.Day12 do
     |> Enum.map(fn {label, x} -> {{x, y}, label} end)
   end
 
-  defp find_regions(grid) do
-    Enum.reduce(grid, {[], MapSet.new()}, fn {tile, _}, {regions, seen} ->
-      if MapSet.member?(seen, tile) do
+  defp parse_regions(grid) do
+    Map.keys(grid)
+    |> Enum.reduce({[], MapSet.new()}, fn location, {regions, seen} ->
+      if location in seen do
         {regions, seen}
       else
-        new_region = walk_region(grid, tile)
-        {[new_region | regions], MapSet.union(seen, MapSet.new(new_region))}
+        new_region = find_region(grid, location)
+        {[new_region | regions], MapSet.union(seen, new_region)}
       end
     end)
     |> elem(0)
   end
 
-  defp walk_region(grid, location) do
-    do_walk_region(grid, location, [], MapSet.new())
-    |> elem(0)
-  end
+  defp move({x, y}, {dx, dy}), do: {x + dx, y + dy}
 
-  defp do_walk_region(grid, {x, y}, region, seen) do
-    if MapSet.member?(seen, {x, y}) do
-      {region, seen}
+  defp find_region(grid, location, region \\ MapSet.new()) do
+    if location in region do
+      region
     else
-      candidate_tiles = Enum.map(@adjacent4, fn {dx, dy} -> {x + dx, y + dy} end)
-      current_label = Map.get(grid, {x, y})
-      neighbors = Enum.reject(candidate_tiles, &(Map.get(grid, &1) != current_label))
+      region = MapSet.put(region, location)
+      label = Map.get(grid, location)
 
-      current_region = [{x, y} | region]
-      current_seen = MapSet.put(seen, {x, y})
-
-      Enum.reduce(neighbors, {current_region, current_seen}, fn c, {r, s} ->
-        do_walk_region(grid, c, r, s)
+      @adjacent4
+      |> Enum.map(&move(location, &1))
+      |> Enum.reject(&(Map.get(grid, &1) != label))
+      |> Enum.reduce(region, fn next_location, region ->
+        find_region(grid, next_location, region)
       end)
     end
   end
 
   def calculate_fence_cost(regions) do
-    Enum.reduce(regions, 0, fn r, total ->
-      total + calculate_region_area(r) * calculate_region_perimeter(r)
-    end)
-  end
-
-  def calculate_fence_bulk_cost(regions) do
-    Enum.reduce(regions, 0, fn r, total ->
-      total + calculate_region_area(r) * calculate_region_sides(r)
-    end)
-  end
-
-  defp calculate_region_sides(region) do
-    region
-    |> Enum.map(&count_corners(&1, region))
+    regions
+    |> Enum.map(&(calculate_region_area(&1) * calculate_region_perimeter(&1)))
     |> Enum.sum()
   end
 
-  def count_corners({x, y}, region) do
-    Enum.count(@corners, fn [{dx1, dy1}, {dx2, dy2}, {dx3, dy3}] ->
-      left = {x + dx1, y + dy1}
-      diag = {x + dx2, y + dy2}
-      front = {x + dx3, y + dy3}
-
-      external_corner? = left not in region and front not in region
-
-      internal_corner? =
-        left in region and front in region and diag not in region
-
-      external_corner? or internal_corner?
-    end)
+  def calculate_bulk_fence_cost(regions) do
+    regions
+    |> Enum.map(&(calculate_region_area(&1) * calculate_region_sides(&1)))
+    |> Enum.sum()
   end
 
   def calculate_region_area(region), do: Enum.count(region)
@@ -126,7 +98,26 @@ defmodule AdventOfCode.Day12 do
     |> Enum.sum()
   end
 
-  def count_exposed_edges({x, y}, region) do
-    Enum.count(@adjacent4, fn {dx, dy} -> {x + dx, y + dy} not in region end)
+  def count_exposed_edges(location, region) do
+    Enum.count(@adjacent4, &(move(location, &1) not in region))
+  end
+
+  defp calculate_region_sides(region) do
+    region
+    |> Enum.map(&count_corners(&1, region))
+    |> Enum.sum()
+  end
+
+  def count_corners(location, region) do
+    Enum.count(@corners, fn [left_direction, diag_direction, foward_direction] ->
+      left = move(location, left_direction)
+      diag = move(location, diag_direction)
+      front = move(location, foward_direction)
+
+      external_corner? = left not in region and front not in region
+      internal_corner? = left in region and front in region and diag not in region
+
+      external_corner? or internal_corner?
+    end)
   end
 end
