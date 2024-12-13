@@ -31,11 +31,38 @@ defmodule AdventOfCode.Day12Test do
     assert result == 1304764
   end
 
-  @tag :skip
-  test "part2" do
-    input = nil
+  test "part2 sample A" do
+    input = "#{__DIR__}/fixtures/day12_sample_a.txt"
     result = part2(input)
 
-    assert result
+    assert result == 80
+  end
+
+  test "part2 sample B" do
+    input = "#{__DIR__}/fixtures/day12_sample_b.txt"
+    result = part2(input)
+
+    assert result == 436
+  end
+
+  test "part2 sample D" do
+    input = "#{__DIR__}/fixtures/day12_sample_d.txt"
+    result = part2(input)
+
+    assert result == 236
+  end
+
+  test "part2 sample E" do
+    input = "#{__DIR__}/fixtures/day12_sample_e.txt"
+    result = part2(input)
+
+    assert result == 368
+  end
+
+  test "part2 input" do
+    input = "#{__DIR__}/fixtures/day12_input.txt"
+    result = part2(input)
+
+    assert result == 811148
   end
 end
