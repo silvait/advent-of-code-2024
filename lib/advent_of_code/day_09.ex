@@ -73,7 +73,7 @@ defmodule AdventOfCode.Day09 do
     |> Enum.reduce(0, fn {x, index}, sum ->
       case x do
         @free_space -> sum
-        _ -> sum + (x * index)
+        _ -> sum + x * index
       end
     end)
   end
@@ -126,29 +126,31 @@ defmodule AdventOfCode.Day09 do
       do_compress_files(disk, end_i - 1)
     else
       case find_free_spot(disk, count, end_i) do
-        nil ->
-          do_compress_files(disk, end_i - 1)
-
-        index ->
-          {_, free_count} = Enum.at(disk, index)
-
-          new_free_count = free_count - count
-
-          if new_free_count > 0 do
-            new_disk =
-              List.replace_at(disk, end_i, {@free_space, count})
-              |> List.replace_at(index, {highest_id, count})
-              |> List.insert_at(index + 1, {@free_space, new_free_count})
-
-            do_compress_files(new_disk, end_i - 1)
-          else
-            new_disk =
-              List.replace_at(disk, end_i, {@free_space, count})
-              |> List.replace_at(index, {highest_id, count})
-
-            do_compress_files(new_disk, end_i - 1)
-          end
+        nil -> do_compress_files(disk, end_i - 1)
+        index -> move_file_to_free_space(disk, end_i, index)
       end
+    end
+  end
+
+  defp move_file_to_free_space(disk, file_index, free_index) do
+    {highest_id, count} = Enum.at(disk, file_index)
+
+    {_, free_count} = Enum.at(disk, free_index)
+    new_free_count = free_count - count
+
+    if new_free_count > 0 do
+      new_disk =
+        List.replace_at(disk, file_index, {@free_space, count})
+        |> List.replace_at(free_index, {highest_id, count})
+        |> List.insert_at(free_index + 1, {@free_space, new_free_count})
+
+      do_compress_files(new_disk, file_index - 1)
+    else
+      new_disk =
+        List.replace_at(disk, file_index, {@free_space, count})
+        |> List.replace_at(free_index, {highest_id, count})
+
+      do_compress_files(new_disk, file_index - 1)
     end
   end
 
