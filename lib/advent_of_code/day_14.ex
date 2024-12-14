@@ -46,11 +46,15 @@ defmodule AdventOfCode.Day14 do
   def simulate_and_check(bots, dimensions) do
     total_bots = Enum.count(bots)
 
-    Enum.reduce_while(1..10_000, bots, fn step, space ->
-      new_bots = Enum.map(space, &move_bot(&1, dimensions))
-      coordinates = for {location, _v} <- new_bots, do: location
+    Enum.reduce_while(1..10_000, bots, fn step, bots ->
+      new_bots = Enum.map(bots, &move_bot(&1, dimensions))
 
-      if Enum.count(Enum.uniq(coordinates)) == total_bots do
+      unique_coordinates = new_bots
+      |> Enum.map(&elem(&1, 0))
+      |> Enum.uniq()
+      |> Enum.count()
+
+      if unique_coordinates == total_bots do
         {:halt, step}
       else
         {:cont, new_bots}
