@@ -63,14 +63,12 @@ defmodule AdventOfCode.Day13 do
     count_a = (prize_x * b_y - prize_y * b_x) / (a_x * b_y - a_y * b_x)
     count_b = (prize_x - a_x * count_a) / b_x
 
-    counts =
-      if whole_number?(count_a) and whole_number?(count_b) do
-        {count_a, count_b}
-      end
-
-    calculate_cost(counts)
+    if whole_number?(count_a) and whole_number?(count_b) do
+      calculate_cost({count_a, count_b})
+    else
+      0
+    end
   end
 
-  defp calculate_cost(nil), do: 0
   defp calculate_cost({count_a, count_b}), do: count_a * @button_a_cost + count_b * @button_b_cost
 end
