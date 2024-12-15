@@ -26,13 +26,13 @@ p=9,5 v=-3,-3"
     input = File.read!("#{__DIR__}/fixtures/day14_input.txt")
     result = part1(input, {101, 103})
 
-    assert result == 12
+    assert result == 229_980_828
   end
 
-  test "part2" do
+  test "part2 input" do
     input = File.read!("#{__DIR__}/fixtures/day14_input.txt")
     result = part2(input, {101, 103})
 
-    assert result == 7132
+    assert result == 7_132
   end
 end

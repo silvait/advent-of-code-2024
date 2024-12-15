@@ -22,12 +22,12 @@ defmodule AdventOfCode.Day14 do
   end
 
   def parse_robot(line) do
-    ["p=" <> start, "v=" <> velocity] = String.split(line)
+    ["p=" <> position, "v=" <> velocity] = String.split(line)
 
-    start = parse_coordinates(start)
+    position = parse_coordinates(position)
     velocity = parse_coordinates(velocity)
 
-    {start, velocity}
+    {position, velocity}
   end
 
   def parse_coordinates(coordinates) do
@@ -38,7 +38,7 @@ defmodule AdventOfCode.Day14 do
   end
 
   def simulate(bots, dimensions) do
-    Enum.reduce(1..10_000, bots, fn _step, space ->
+    Enum.reduce(1..100, bots, fn _step, space ->
       Enum.map(space, &move_bot(&1, dimensions))
     end)
   end
@@ -49,10 +49,11 @@ defmodule AdventOfCode.Day14 do
     Enum.reduce_while(1..10_000, bots, fn step, bots ->
       new_bots = Enum.map(bots, &move_bot(&1, dimensions))
 
-      unique_coordinates = new_bots
-      |> Enum.map(&elem(&1, 0))
-      |> Enum.uniq()
-      |> Enum.count()
+      unique_coordinates =
+        new_bots
+        |> Enum.map(&elem(&1, 0))
+        |> Enum.uniq()
+        |> Enum.count()
 
       if unique_coordinates == total_bots do
         {:halt, step}
@@ -69,44 +70,32 @@ defmodule AdventOfCode.Day14 do
     {{new_x, new_y}, {dx, dy}}
   end
 
-  def wrap_add(n, inc, min, max) do
-    new_n = n + inc
+  def wrap_add(n, inc, min, max), do: maybe_wrap(n + inc, min, max)
 
-    cond do
-      new_n < min -> new_n + max
-      new_n >= max -> new_n - max
-      true -> new_n
-    end
-  end
+  def maybe_wrap(n, min, max) when n < min, do: n + max
+  def maybe_wrap(n, _min, max) when n >= max, do: n - max
+  def maybe_wrap(n, _min, _max), do: n
 
-  def count_robots_per_quadrant(bots, dimensions) do
-    bots
-    |> split_by_quadrant(dimensions)
-    |> Enum.map(fn {_k, v} -> Enum.count(v) end)
-  end
+  def count_robots_per_quadrant(bots, {width, height}) do
+    q1 = {0..(div(width, 2) - 1), 0..(div(height, 2) - 1)}
+    q2 = {round(width / 2)..(width - 1), 0..(div(height, 2) - 1)}
+    q3 = {0..(div(width, 2) - 1), round(height / 2)..(height - 1)}
+    q4 = {round(width / 2)..(width - 1), round(height / 2)..(height - 1)}
 
-  def split_by_quadrant(bots, {width, height}) do
-    q1_x_range = 0..(div(width, 2) - 1)
-    q1_y_range = 0..(div(height, 2) - 1)
-
-    q2_x_range = round(width / 2)..(width - 1)
-    q2_y_range = 0..(div(height, 2) - 1)
-
-    q3_x_range = 0..(div(width, 2) - 1)
-    q3_y_range = round(height / 2)..(height - 1)
-
-    q4_x_range = round(width / 2)..(width - 1)
-    q4_y_range = round(height / 2)..(height - 1)
-
-    Enum.group_by(bots, fn {{x, y}, _} ->
+    Enum.frequencies_by(bots, fn {position, _} ->
       cond do
-        x in q1_x_range and y in q1_y_range -> :q1
-        x in q2_x_range and y in q2_y_range -> :q2
-        x in q3_x_range and y in q3_y_range -> :q3
-        x in q4_x_range and y in q4_y_range -> :q4
-        true -> :none
+        in_quadrant?(position, q1) -> :q1
+        in_quadrant?(position, q2) -> :q2
+        in_quadrant?(position, q3) -> :q3
+        in_quadrant?(position, q4) -> :q4
+        true -> :middle
       end
     end)
-    |> Map.delete(:none)
+    |> Map.delete(:middle)
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  def in_quadrant?({x, y}, {quadrant_x_range, quadrant_y_range}) do
+    x in quadrant_x_range and y in quadrant_y_range
   end
 end
