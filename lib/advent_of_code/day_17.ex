@@ -4,7 +4,7 @@ defmodule CPU do
   defstruct register_a: 0,
             register_b: 0,
             register_c: 0,
-            instruction_pointer: 0,
+            ip: 0,
             instructions: [],
             output: [],
             state: :running
@@ -13,24 +13,13 @@ end
 defmodule AdventOfCode.Day17 do
   @moduledoc false
 
-  @adv 0
-  @bxl 1
-  @bst 2
-  @jnz 3
-  @bxc 4
-  @out 5
-  @bdv 6
-  @cdv 7
+  @all_octals Enum.to_list(0..7)
   @instruction_size 2
-
-  @guesses Enum.to_list(0..7)
-
-  import Bitwise
 
   def part1(cpu), do: cpu |> run() |> get_cpu_output()
 
   def part2(instructions) do
-    %CPU{instructions: instructions} |> solve(@guesses, Enum.reverse(instructions))
+    solve(%CPU{instructions: instructions}, @all_octals, Enum.reverse(instructions))
   end
 
   # output matched all instructions
@@ -40,62 +29,61 @@ defmodule AdventOfCode.Day17 do
 
   def solve(
         %CPU{register_a: a} = cpu,
-        [guess | remaining_guesses],
-        [instruction | remaining_instructions] = all_instructions
+        [current_guess | remaining_guesses],
+        [current_instruction | remaining_instructions] = instructions
       ) do
-    candidate_cpu = %{cpu | register_a: a <<< 3 ||| guess}
+    # shift a 3 bits left and add the current_guess to the end
+    candidate_cpu = %{cpu | register_a: a * 8 + current_guess}
 
     case run_and_check(candidate_cpu) do
-      %CPU{output: [^instruction]} ->
-        solve(candidate_cpu, @guesses, remaining_instructions) ||
-          solve(cpu, remaining_guesses, all_instructions)
+      %CPU{output: [^current_instruction]} ->
+        solve(candidate_cpu, @all_octals, remaining_instructions) ||
+          solve(cpu, remaining_guesses, instructions)
 
       _ ->
-        solve(cpu, remaining_guesses, all_instructions)
+        solve(cpu, remaining_guesses, instructions)
     end
   end
 
-  def get_cpu_output(%CPU{output: output}) do
-    Enum.reverse(output)
-  end
+  def get_cpu_output(%CPU{} = cpu), do: Enum.reverse(cpu.output)
 
   def run_and_check(%CPU{state: :halted} = cpu), do: cpu
   # Break on first output
   def run_and_check(%CPU{output: [_]} = cpu), do: cpu
-  def run_and_check(%CPU{} = cpu), do: cpu |> tick() |> run_and_check()
+  def run_and_check(%CPU{} = cpu), do: cpu |> step() |> run_and_check()
 
   def run(%CPU{state: :halted} = cpu), do: cpu
-  def run(%CPU{} = cpu), do: cpu |> tick() |> run()
+  def run(%CPU{} = cpu), do: cpu |> step() |> run()
 
-  def tick(cpu) do
+  def step(%CPU{} = cpu) do
     cpu
     |> get_instruction_and_operand()
     |> then(&execute_instruction(cpu, &1))
     |> increment_instruction_pointer()
   end
 
-  def get_instruction_and_operand(%CPU{instruction_pointer: ip, instructions: instructions}) do
+  def get_instruction_and_operand(%CPU{ip: ip, instructions: instructions}) do
     Enum.slice(instructions, ip, @instruction_size)
   end
 
-  def execute_instruction(cpu, [@adv, operand]), do: divide_a(cpu, operand, :register_a)
-  def execute_instruction(cpu, [@bdv, operand]), do: divide_a(cpu, operand, :register_b)
-  def execute_instruction(cpu, [@cdv, operand]), do: divide_a(cpu, operand, :register_c)
-  def execute_instruction(cpu, [@bxl, operand]), do: xor_b_and_operand(cpu, operand)
-  def execute_instruction(cpu, [@bxc, _operand]), do: xor_b_and_c(cpu)
-  def execute_instruction(cpu, [@bst, operand]), do: b_mod_operand(cpu, operand)
-  def execute_instruction(cpu, [@jnz, operand]), do: jump_if_not_zero(cpu, operand)
-  def execute_instruction(cpu, [@out, operand]), do: output(cpu, operand)
+  def execute_instruction(cpu, [0, operand]), do: divide_a(cpu, operand, :register_a)
+  def execute_instruction(cpu, [1, operand]), do: xor_b_and_operand(cpu, operand)
+  def execute_instruction(cpu, [2, operand]), do: b_mod_operand(cpu, operand)
+  def execute_instruction(cpu, [3, operand]), do: jump_if_not_zero(cpu, operand)
+  def execute_instruction(cpu, [4, _operand]), do: xor_b_and_c(cpu)
+  def execute_instruction(cpu, [5, operand]), do: output(cpu, operand)
+  def execute_instruction(cpu, [6, operand]), do: divide_a(cpu, operand, :register_b)
+  def execute_instruction(cpu, [7, operand]), do: divide_a(cpu, operand, :register_c)
   def execute_instruction(cpu, _instruction_and_operand), do: halt(cpu)
 
   defp halt(cpu), do: %{cpu | state: :halted}
 
   defp xor_b_and_c(%CPU{register_b: b, register_c: c} = cpu) do
-    %{cpu | register_b: bxor(b, c)}
+    %{cpu | register_b: Bitwise.bxor(b, c)}
   end
 
   defp xor_b_and_operand(%CPU{register_b: b} = cpu, operand) do
-    %{cpu | register_b: bxor(b, operand)}
+    %{cpu | register_b: Bitwise.bxor(b, operand)}
   end
 
   defp b_mod_operand(cpu, operand) do
@@ -115,19 +103,13 @@ defmodule AdventOfCode.Day17 do
   # Adjust operand to offset automatic instruction pointer incrementing
   defp jump_if_not_zero(%CPU{} = cpu, operand), do: jump_to(cpu, operand - @instruction_size)
 
-  defp increment_instruction_pointer(%CPU{instruction_pointer: ip} = cpu) do
-    jump_to(cpu, ip + @instruction_size)
-  end
+  defp increment_instruction_pointer(%CPU{} = cpu), do: jump_to(cpu, cpu.ip + @instruction_size)
 
-  defp jump_to(cpu, index), do: %{cpu | instruction_pointer: index}
+  defp jump_to(cpu, index), do: %{cpu | ip: index}
 
-  def combo_operand(%CPU{} = cpu, operand) do
-    case operand do
-      op when op in 0..3 -> op
-      4 -> cpu.register_a
-      5 -> cpu.register_b
-      6 -> cpu.register_c
-      7 -> raise "combo operand 7 is invalid!"
-    end
-  end
+  def combo_operand(_cpu, operand) when operand in 0..3, do: operand
+  def combo_operand(%CPU{register_a: a}, 4), do: a
+  def combo_operand(%CPU{register_b: b}, 5), do: b
+  def combo_operand(%CPU{register_c: c}, 6), do: c
+  def combo_operand(_cpu, operand), do: raise("invalid combo operand '#{operand}'")
 end
