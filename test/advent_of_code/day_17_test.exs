@@ -25,11 +25,15 @@ defmodule AdventOfCode.Day17Test do
     assert result == [3, 7, 1, 7, 2, 1, 0, 6, 3]
   end
 
-  @tag :skip
-  test "part2" do
-    input = nil
-    result = part2(input)
+  test "part2 sample" do
+    result = part2([0, 3, 5, 4, 3, 0])
 
-    assert result
+    assert result.register_a == 117_440
+  end
+
+  test "part2 input" do
+    result = part2([2, 4, 1, 2, 7, 5, 1, 3, 4, 3, 5, 5, 0, 3, 3, 0])
+
+    assert result.register_a == 37_221_334_433_268
   end
 end

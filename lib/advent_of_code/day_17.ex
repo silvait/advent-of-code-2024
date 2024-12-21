@@ -23,24 +23,55 @@ defmodule AdventOfCode.Day17 do
   @cdv 7
   @instruction_size 2
 
+  @guesses Enum.to_list(0..7)
+
   import Bitwise
 
-  def part1(cpu) do
-    cpu |> run() |> get_cpu_output()
+  def part1(cpu), do: cpu |> run() |> get_cpu_output()
+
+  def part2(instructions) do
+    %CPU{instructions: instructions} |> solve(@guesses, Enum.reverse(instructions))
+  end
+
+  # output matched all instructions
+  def solve(%CPU{} = cpu, _, []), do: cpu
+  # no more guesses
+  def solve(_, [], _), do: nil
+
+  def solve(
+        %CPU{register_a: a} = cpu,
+        [guess | remaining_guesses],
+        [instruction | remaining_instructions] = all_instructions
+      ) do
+    candidate_cpu = %{cpu | register_a: a <<< 3 ||| guess}
+
+    case run_and_check(candidate_cpu) do
+      %CPU{output: [^instruction]} ->
+        solve(candidate_cpu, @guesses, remaining_instructions) ||
+          solve(cpu, remaining_guesses, all_instructions)
+
+      _ ->
+        solve(cpu, remaining_guesses, all_instructions)
+    end
   end
 
   def get_cpu_output(%CPU{output: output}) do
     Enum.reverse(output)
   end
 
-  def run(%CPU{state: :halted} = cpu), do: cpu
+  def run_and_check(%CPU{state: :halted} = cpu), do: cpu
+  # Break on first output
+  def run_and_check(%CPU{output: [_]} = cpu), do: cpu
+  def run_and_check(%CPU{} = cpu), do: cpu |> tick() |> run_and_check()
 
-  def run(%CPU{} = cpu) do
+  def run(%CPU{state: :halted} = cpu), do: cpu
+  def run(%CPU{} = cpu), do: cpu |> tick() |> run()
+
+  def tick(cpu) do
     cpu
     |> get_instruction_and_operand()
     |> then(&execute_instruction(cpu, &1))
     |> increment_instruction_pointer()
-    |> run()
   end
 
   def get_instruction_and_operand(%CPU{instruction_pointer: ip, instructions: instructions}) do
@@ -81,7 +112,6 @@ defmodule AdventOfCode.Day17 do
 
   # No-op
   defp jump_if_not_zero(%CPU{register_a: 0} = cpu, _operand), do: cpu
-
   # Adjust operand to offset automatic instruction pointer incrementing
   defp jump_if_not_zero(%CPU{} = cpu, operand), do: jump_to(cpu, operand - @instruction_size)
 
@@ -99,8 +129,5 @@ defmodule AdventOfCode.Day17 do
       6 -> cpu.register_c
       7 -> raise "combo operand 7 is invalid!"
     end
-  end
-
-  def part2(_args) do
   end
 end
