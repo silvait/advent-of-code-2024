@@ -21,17 +21,15 @@ defmodule AdventOfCode.Day17 do
   # no more guesses
   def solve(_, [], _), do: nil
 
-  def solve(
-        %CPU{a: a} = cpu,
-        [current_guess | remaining_guesses],
-        [current_instruction | remaining_instructions] = instructions
-      ) do
+  def solve(%CPU{a: a} = cpu, [guess | remaining_guesses], instructions) do
     # shift a 3 bits left and add the current_guess to the end
-    candidate_cpu = %{cpu | a: a * 8 + current_guess}
+    new_cpu = %{cpu | a: a * 8 + guess}
 
-    case run_and_check(candidate_cpu) do
-      %CPU{output: [^current_instruction]} ->
-        solve(candidate_cpu, @all_octals, remaining_instructions) ||
+    [expected_instruction | remaining_instructions] = instructions
+
+    case run_and_check(new_cpu) do
+      %CPU{output: [^expected_instruction]} ->
+        solve(new_cpu, @all_octals, remaining_instructions) ||
           solve(cpu, remaining_guesses, instructions)
 
       _ ->
