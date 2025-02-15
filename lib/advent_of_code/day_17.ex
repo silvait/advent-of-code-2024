@@ -95,6 +95,7 @@ defmodule AdventOfCode.Day17 do
   # Adjust operand to offset automatic instruction pointer incrementing
   defp jump_if_not_zero(%CPU{} = cpu, operand), do: jump_to(cpu, operand - @instruction_size)
 
+  defp increment_instruction_pointer(%CPU{ip: nil} = cpu), do: cpu
   defp increment_instruction_pointer(%CPU{} = cpu), do: jump_to(cpu, cpu.ip + @instruction_size)
 
   defp jump_to(cpu, index), do: %{cpu | ip: index}
