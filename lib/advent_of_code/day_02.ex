@@ -9,41 +9,32 @@ defmodule AdventOfCode.Day02 do
   end
 
   defp parse_numbers(str) do
-    String.split(str) |> Enum.map(&String.to_integer/1)
+    str |> String.split() |> Enum.map(&String.to_integer/1)
   end
 
   defp safe_level?(levels) do
     deltas = calculate_deltas(levels)
 
-    (Enum.all?(deltas, fn x -> x > 0 end) || Enum.all?(deltas, fn x -> x < 0 end)) &&
-      Enum.all?(deltas, fn x -> abs(x) <= 3 end)
+    (all_ascending?(deltas) or all_descending?(deltas)) and
+      Enum.all?(deltas, &(abs(&1) <= 3))
   end
 
+  defp all_ascending?(deltas), do: Enum.all?(deltas, &(&1 > 0))
+
+  defp all_descending?(deltas), do: Enum.all?(deltas, &(&1 < 0))
+
   defp generate_sublists(list) do
-    Enum.map(0..(length(list) - 1), fn index ->
-      List.delete_at(list, index)
-    end)
+    Enum.with_index(list, fn _, index -> List.delete_at(list, index) end)
   end
 
   defp tolerable_safe_level?(levels) do
-    safe_level?(levels) || generate_sublists(levels) |> Enum.any?(&safe_level?/1)
+    safe_level?(levels) or Enum.any?(generate_sublists(levels), &safe_level?/1)
   end
 
   def calculate_deltas(levels) do
-    Enum.chunk_every(levels, 2, 1, :discard)
+    levels
+    |> Enum.chunk_every(2, 1, :discard)
     |> Enum.map(fn [a, b] -> b - a end)
-  end
-
-  defp count_safe_levels(levels) do
-    levels
-    |> Enum.filter(&safe_level?/1)
-    |> length()
-  end
-
-  defp count_tolerable_safe_levels(levels) do
-    levels
-    |> Enum.filter(&tolerable_safe_level?/1)
-    |> length()
   end
 
   def part1(input_file) do
@@ -51,7 +42,7 @@ defmodule AdventOfCode.Day02 do
     |> read_file()
     |> String.split("\n", trim: true)
     |> Enum.map(&parse_numbers/1)
-    |> count_safe_levels()
+    |> Enum.count(&safe_level?/1)
   end
 
   def part2(input_file) do
@@ -59,6 +50,6 @@ defmodule AdventOfCode.Day02 do
     |> read_file()
     |> String.split("\n", trim: true)
     |> Enum.map(&parse_numbers/1)
-    |> count_tolerable_safe_levels()
+    |> Enum.count(&tolerable_safe_level?/1)
   end
 end
